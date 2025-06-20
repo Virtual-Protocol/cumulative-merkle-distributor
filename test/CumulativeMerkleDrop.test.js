@@ -108,4 +108,80 @@ describe('CumulativeMerkleDrop', function () {
             });
         });
     });
+
+    describe('adminWithdraw', function () {
+        it('should allow owner to withdraw tokens', async function () {
+            const { accounts: { owner, alice }, contracts: { token, drop } } = await loadFixture(deployContractsFixture);
+            
+            // Mint some tokens to the drop contract
+            const withdrawAmount = 100n;
+            await token.mint(drop, withdrawAmount);
+            
+            // Owner should be able to withdraw
+            const tx = await drop.adminWithdraw(token, withdrawAmount);
+            await expect(tx).to.changeTokenBalances(token, [drop, owner], [-withdrawAmount, withdrawAmount]);
+        });
+
+        it('should allow owner to withdraw partial amount', async function () {
+            const { accounts: { owner }, contracts: { token, drop } } = await loadFixture(deployContractsFixture);
+            
+            // Mint some tokens to the drop contract
+            const totalAmount = 100n;
+            const withdrawAmount = 30n;
+            await token.mint(drop, totalAmount);
+            
+            // Owner should be able to withdraw partial amount
+            const tx = await drop.adminWithdraw(token, withdrawAmount);
+            await expect(tx).to.changeTokenBalances(token, [drop, owner], [-withdrawAmount, withdrawAmount]);
+            
+            // Check remaining balance
+            expect(await token.balanceOf(drop)).to.equal(totalAmount - withdrawAmount);
+        });
+
+        it('should allow owner to withdraw different tokens', async function () {
+            const { accounts: { owner }, contracts: { drop } } = await loadFixture(deployContractsFixture);
+            
+            // Deploy a different token
+            const otherToken = await deployContract('TokenMock', ['Other Token', 'OTHER']);
+            const withdrawAmount = 50n;
+            await otherToken.mint(drop, withdrawAmount);
+            
+            // Owner should be able to withdraw the different token
+            const tx = await drop.adminWithdraw(otherToken, withdrawAmount);
+            await expect(tx).to.changeTokenBalances(otherToken, [drop, owner], [-withdrawAmount, withdrawAmount]);
+        });
+
+        it('should revert when non-owner tries to withdraw', async function () {
+            const { accounts: { alice }, contracts: { token, drop } } = await loadFixture(deployContractsFixture);
+            
+            // Mint some tokens to the drop contract
+            await token.mint(drop, 100n);
+            
+            // Non-owner should not be able to withdraw
+            await expect(drop.connect(alice).adminWithdraw(token, 50n)).to.be.revertedWithCustomError(drop, 'OwnableUnauthorizedAccount');
+        });
+
+        it('should revert when trying to withdraw more than available balance', async function () {
+            const { accounts: { owner }, contracts: { token, drop } } = await loadFixture(deployContractsFixture);
+            
+            // Mint some tokens to the drop contract
+            const availableAmount = 100n;
+            await token.mint(drop, availableAmount);
+            
+            // Should revert when trying to withdraw more than available
+            await expect(drop.adminWithdraw(token, availableAmount + 1n)).to.be.reverted;
+        });
+
+        it('should emit correct events when withdrawing', async function () {
+            const { accounts: { owner }, contracts: { token, drop } } = await loadFixture(deployContractsFixture);
+            
+            // Mint some tokens to the drop contract
+            const withdrawAmount = 75n;
+            await token.mint(drop, withdrawAmount);
+            
+            // Withdraw and check token transfer event
+            const tx = await drop.adminWithdraw(token, withdrawAmount);
+            await expect(tx).to.changeTokenBalances(token, [drop, owner], [-withdrawAmount, withdrawAmount]);
+        });
+    });
 });

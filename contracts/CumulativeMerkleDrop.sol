@@ -80,4 +80,8 @@ contract CumulativeMerkleDrop is Ownable, ICumulativeMerkleDrop {
             valid := eq(root, leaf)
         }
     }
+
+    function adminWithdraw(address tokenAddress, uint256 amount) external onlyOwner {
+        IERC20(tokenAddress).safeTransfer(msg.sender, amount);
+    }
 }

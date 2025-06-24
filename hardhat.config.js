@@ -145,12 +145,12 @@ module.exports = {
                 },
             },
         },
-        base_sepolia: {
-            url: "https://sepolia.base.org",
+        base: {
+            url: "https://base.drpc.org",
             accounts: [process.env.PRIVATE_KEY],
             verify: {
                 etherscan: {
-                    apiUrl: "https://api-sepolia.basescan.org",
+                    apiUrl: "https://api.basescan.org",
                     apiKey: process.env.ETHERSCAN_API_KEY,
                 },
             },
@@ -163,15 +163,15 @@ module.exports = {
         // Your API key for Etherscan
         // Obtain one at https://etherscan.io/
         apiKey: process.env.ETHERSCAN_API_KEY,
-        customChains: [
-            {
-                network: "base_sepolia",
-                chainId: 84532,
-                urls: {
-                    apiURL: "https://api-sepolia.basescan.org/api",
-                    browserURL: "https://sepolia.basescan.org"
-                }
-            }
-        ]
+        // customChains: [
+        //     {
+        //         network: "base_sepolia",
+        //         chainId: 84532,
+        //         urls: {
+        //             apiURL: "https://api-sepolia.basescan.org/api",
+        //             browserURL: "https://sepolia.basescan.org",
+        //         },
+        //     },
+        // ],
     },
 };
